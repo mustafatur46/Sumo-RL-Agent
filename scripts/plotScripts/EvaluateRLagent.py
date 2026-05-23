@@ -1,0 +1,9 @@
+from AverageQueueLengthPlot import SaveQueueLengthPlot
+from AverageTripDurationPlot import SaveTripDurationPlot
+from AverageWaitingTimePlot import SaveAverageWaitingTimePlot
+from MeanWaitingTIme import SaveMeanWaitingTimePlot
+
+SaveQueueLengthPlot("Average_Queue_Length_Evaluation")
+SaveTripDurationPlot("Average_Trip_Duration_Evaluation")
+SaveAverageWaitingTimePlot("Average_Waiting_Time_Evaluation")
+SaveMeanWaitingTimePlot("Mean_Waiting_Time_Evaluation")

@@ -1,0 +1,41 @@
+# ── Generierte Route-Dateien ──────────────────────────────────────────────────
+# Diese Dateien werden von SUMO-Tools automatisch erzeugt.
+# Wie man sie neu generiert: siehe README.md → "Route-Dateien generieren"
+
+oneJunction/routeFiles/randtrips.rou.xml
+oneJunction/routeFiles/oneJunction.trips.xml
+oneJunction/routeFiles/baseroutes.rou.xml
+oneJunction/routeFiles/baseroutes.rou.alt.xml
+oneJunction/routeFiles/merged.rou.xml
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+.venv/
+env/
+venv/
+
+# ── Training-Artefakte ────────────────────────────────────────────────────────
+logs/
+!logs/.gitkeep
+
+# ── Modelle & Checkpoints ─────────────────────────────────────────────────────
+*.zip
+*.pkl
+
+# ── SUMO temporäre Dateien ────────────────────────────────────────────────────
+*.log
+tripinfo*.xml
+summary*.xml
+
+# ── IDE / OS ──────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini

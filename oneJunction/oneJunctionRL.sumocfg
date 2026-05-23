@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2025-02-26 19:40:34 by Eclipse SUMO sumo Version 1.21.0 -->
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="oneJunction.net.xml"/>
+        <route-files value="routeFiles/flows.rou.xml,routeFiles/baseroutes.rou.xml"/>
+        <additional-files value="oneJunction.add.xml"/>
+    </input>
+    
+    <time>
+        <begin value="0"/>
+        <end value="86400"/>
+    </time>
+
+    <output>
+        <tripinfo-output value="../outputs/tripinfoRLB.xml"/>
+        <emission-output value="../outputs/emissionsRLB.xml"/>
+        <fcd-output value="../outputs/fcdRLB.xml"/>
+        <queue-output value="../outputs/queueRLB.xml"/>
+        <summary-output value="../outputs/summaryRLB.xml"/>
+    </output>
+
+</configuration>
+

@@ -1,0 +1,589 @@
+<?xml version="1.0" ?>
+<routes>
+
+  <!-- WESTEN -> OSTEN -->
+  <route id="W_to_E" edges="-E9 E7"/>
+  <!-- WESTEN -> NORDEN -->
+  <route id="W_to_N" edges="-E9 E8"/>
+  <!-- WESTEN -> SÜDEN -->
+  <route id="W_to_S" edges="-E9 E6"/>
+
+  <!-- OSTEN -> WESTEN -->
+  <route id="E_to_W" edges="-E7 E9"/>
+  <!-- OSTEN -> NORDEN -->
+  <route id="E_to_N" edges="-E7 E8"/>
+  <!-- OSTEN -> SÜDEN -->
+  <route id="E_to_S" edges="-E7 E6"/>
+
+  <!-- NORDEN -> WESTEN -->
+  <route id="N_to_W" edges="-E8 E9"/>
+  <!-- NORDEN -> OSTEN -->
+  <route id="N_to_E" edges="-E8 E7"/>
+  <!-- NORDEN -> SÜDEN -->
+  <route id="N_to_S" edges="-E8 E6"/>
+
+  <!-- SÜDEN -> WESTEN -->
+  <route id="S_to_W" edges="-E6 E9"/>
+  <!-- SÜDEN -> OSTEN -->
+  <route id="S_to_E" edges="-E6 E7"/>
+  <!-- SÜDEN -> NORDEN -->
+  <route id="S_to_N" edges="-E6 E8"/>
+
+  <vType id="car" accel="2.6" decel="4.5" sigma="0.5" length="5" maxSpeed="13.89" speedFactor="1.0" speedDev="0.2"/>
+   <!-- 1-5 AM Traffic -->
+  <flow id="flow_west_h1_5" type="car" begin="3600" end="10800" vehsPerHour="13" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+      <flow id="flow_east_h1_5" type="car" begin="3600" end="10800" vehsPerHour="17" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h1_5" type="car" begin="3600" end="10800" vehsPerHour="8" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h1_5" type="car" begin="3600" end="10800" vehsPerHour="9" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+<!-- 3-5 AM Traffic -->
+  <flow id="flow_west_h3_5" type="car" begin="10800" end="21600" vehsPerHour="7" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+      <flow id="flow_east_h3_5" type="car" begin="10800" end="21600" vehsPerHour="6" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h3_5" type="car" begin="10800" end="21600" vehsPerHour="2" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h3_5" type="car" begin="10800" end="21600" vehsPerHour="1" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+
+  <!-- 6 AM Traffic -->
+  <flow id="flow_west_h6" type="car" begin="21600" end="25200" vehsPerHour="67" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+      <flow id="flow_east_h6" type="car" begin="21600" end="25200" vehsPerHour="73" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h6" type="car" begin="21600" end="25200" vehsPerHour="38" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h6" type="car" begin="21600" end="25200" vehsPerHour="32" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+
+  <!-- 7 AM Traffic -->
+  <flow id="flow_west_h7" type="car" begin="25200" end="28800" vehsPerHour="130" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+    <flow id="flow_east_h7" type="car" begin="25200" end="28800" vehsPerHour="140" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h7" type="car" begin="25200" end="28800" vehsPerHour="68" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h7" type="car" begin="25200" end="28800" vehsPerHour="72" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  
+  <!-- 8 AM Traffic -->
+  <flow id="flow_west_h8" type="car" begin="28800" end="32400" vehsPerHour="193" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+    <flow id="flow_east_h8" type="car" begin="28800" end="32400" vehsPerHour="206" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h8" type="car" begin="28800" end="32400" vehsPerHour="150" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h8" type="car" begin="28800" end="32400" vehsPerHour="156" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+
+  <!-- 9 AM Traffic -->
+  <flow id="flow_west_h9" type="car" begin="32400" end="36000" vehsPerHour="236" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_east_h9" type="car" begin="32400" end="36000" vehsPerHour="241" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h9" type="car" begin="32400" end="36000" vehsPerHour="157" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h9" type="car" begin="32400" end="36000" vehsPerHour="144" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+    <!-- 10 AM Traffic -->
+  <flow id="flow_west_h10" type="car" begin="36000" end="39600" vehsPerHour="238" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_east_h10" type="car" begin="36000" end="39600" vehsPerHour="223" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h10" type="car" begin="36000" end="39600" vehsPerHour="174" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h10" type="car" begin="36000" end="39600" vehsPerHour="193" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+      <!-- 11 AM Traffic -->
+  <flow id="flow_west_h11" type="car" begin="39600" end="43200" vehsPerHour="218" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_east_h11" type="car" begin="39600" end="43200" vehsPerHour="203" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h11" type="car" begin="39600" end="43200" vehsPerHour="154" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h11" type="car" begin="39600" end="43200" vehsPerHour="173" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+    <!-- 12 AM Traffic -->
+  <flow id="flow_west_h12" type="car" begin="43200" end="46800" vehsPerHour="169" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+    <flow id="flow_east_h12" type="car" begin="43200" end="46800" vehsPerHour="189" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h12" type="car" begin="43200" end="46800" vehsPerHour="86" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h12" type="car" begin="43200" end="46800" vehsPerHour="83" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <!-- 13-14 AM Traffic -->
+  <flow id="flow_west_h13_14" type="car" begin="46800" end="54000" vehsPerHour="116" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+    <flow id="flow_east_h13_14" type="car" begin="46800" end="54000" vehsPerHour="130" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h13_14" type="car" begin="46800" end="54000" vehsPerHour="58" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h13_14" type="car" begin="46800" end="54000" vehsPerHour="57" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <!-- 15 AM Traffic -->
+  <flow id="flow_west_h15" type="car" begin="54000" end="57600" vehsPerHour="157" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+    <flow id="flow_east_h15" type="car" begin="54000" end="57600" vehsPerHour="141" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h15" type="car" begin="54000" end="57600" vehsPerHour="71" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h15" type="car" begin="54000" end="57600" vehsPerHour="69" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <!-- 16 AM Traffic -->
+  <flow id="flow_west_h16" type="car" begin="57600" end="61200" vehsPerHour="200" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_east_h16" type="car" begin="57600" end="61200" vehsPerHour="226" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h16" type="car" begin="57600" end="61200" vehsPerHour="181" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h16" type="car" begin="57600" end="61200" vehsPerHour="162" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <!-- 17 AM Traffic -->
+  <flow id="flow_west_h17" type="car" begin="61200" end="64800" vehsPerHour="233" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_east_h17" type="car" begin="61200" end="64800" vehsPerHour="245" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h17" type="car" begin="61200" end="64800" vehsPerHour="201" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h17" type="car" begin="61200" end="64800" vehsPerHour="189" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <!-- 18 AM Traffic -->
+  <flow id="flow_west_h18" type="car" begin="64800" end="68400" vehsPerHour="255" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_east_h18" type="car" begin="64800" end="68400" vehsPerHour="245" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h18" type="car" begin="64800" end="68400" vehsPerHour="201" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h18" type="car" begin="64800" end="68400" vehsPerHour="199" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+   <!-- 19 AM Traffic -->
+  <flow id="flow_west_h19" type="car" begin="68400" end="72000" vehsPerHour="126" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+    <flow id="flow_east_h19" type="car" begin="68400" end="72000" vehsPerHour="139" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h19" type="car" begin="68400" end="72000" vehsPerHour="63" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h19" type="car" begin="68400" end="72000" vehsPerHour="61" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <!-- 20 AM Traffic -->
+  <flow id="flow_west_h20" type="car" begin="72000" end="75600" vehsPerHour="106" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+    <flow id="flow_east_h20" type="car" begin="72000" end="75600" vehsPerHour="119" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h20" type="car" begin="72000" end="75600" vehsPerHour="43" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h20" type="car" begin="72000" end="75600" vehsPerHour="41" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+ 
+  <!-- 21 AM Traffic -->
+  <flow id="flow_west_h21" type="car" begin="75600" end="79200" vehsPerHour="64" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+      <flow id="flow_east_h21" type="car" begin="75600" end="79200" vehsPerHour="69" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h21" type="car" begin="75600" end="79200" vehsPerHour="34" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h21" type="car" begin="75600" end="79200" vehsPerHour="28" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <!-- 22 AM Traffic -->
+  <flow id="flow_west_h22" type="car" begin="79200" end="82800" vehsPerHour="34" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+      <flow id="flow_east_h22" type="car" begin="79200" end="82800" vehsPerHour="33" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h22" type="car" begin="79200" end="82800" vehsPerHour="15" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h22" type="car" begin="79200" end="82800" vehsPerHour="12" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <!-- 23-24 AM Traffic -->
+  <flow id="flow_west_h22_24" type="car" begin="82800" end="86390" vehsPerHour="13" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+      <flow id="flow_east_h22_24" type="car" begin="82800" end="86390" vehsPerHour="16" depart="random" departLane="best" departSpeed="random" departPos="0">
+      <routeDistribution>
+        <route refId="E_to_W" probability="0.8"/>
+        <route refId="E_to_S" probability="0.1"/>
+        <route refId="E_to_N" probability="0.1"/>
+      </routeDistribution>
+  </flow>
+  <flow id="flow_north_h22_24" type="car" begin="82800" end="86390" vehsPerHour="8" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="N_to_W" probability="0.25"/>
+      <route refId="N_to_E" probability="0.25"/>
+      <route refId="N_to_S" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+  <flow id="flow_south_h22_24" type="car" begin="82800" end="86400" vehsPerHour="9" depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="S_to_W" probability="0.25"/>
+      <route refId="S_to_E" probability="0.25"/>
+      <route refId="S_to_N" probability="0.50"/>
+    </routeDistribution>
+  </flow>
+</routes>
