@@ -24,10 +24,10 @@ The agent learns to adapt phase timing to live traffic demand *and* real-world w
    - [Training](#training)
    - [Resuming from Checkpoint](#resuming-from-checkpoint)
    - [Evaluation](#evaluation)
-   - [Hyperparameter Tuning (Optuna)](#hyperparameter-tuning-optuna)
    - [TensorBoard](#tensorboard)
 8. [Project Structure](#project-structure)
 9. [Architecture Overview](#architecture-overview)
+   - [Decision cycle](#decision-cycle)
    - [Observation Space](#observation-space)
    - [Action Space](#action-space)
    - [Reward Function](#reward-function)
@@ -45,12 +45,12 @@ The agent learns to adapt phase timing to live traffic demand *and* real-world w
 |-----------|-----------|
 | Traffic simulator | SUMO ≥ 1.19 |
 | RL algorithm | MaskablePPO (sb3-contrib) |
-| Curriculum | 4 levels, HDF5-backed performance tracking |
+| Curriculum | 3 levels (episode length, hours, weather), plateau-based level-up |
 | Weather | Open-Meteo JSON → empirical friction/visibility model |
 | Framework | PyTorch + Stable-Baselines3 |
 
 The agent controls a 4-phase traffic light at a single cross-junction.  
-It selects one of 4 green phases per simulation step; the `TrafficLightManager` enforces the yellow / red-yellow inter-green period and the minimum green time automatically.
+Every 5 simulated seconds it selects one of 4 green phases; the `TrafficLightController` inserts the yellow / red-yellow inter-green period and enforces minimum (10 s) and maximum (60 s) green via the action mask.
 
 ---
 
@@ -204,13 +204,11 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 # (CPU-only: `pip install torch torchvision torchaudio`)
 
 pip install stable-baselines3==2.3.2
-pip install sb3-contrib==2.3.2
+pip install sb3-contrib==2.3.0
 pip install gymnasium==0.29.1
-pip install traci                # bundled with SUMO; also available on PyPI
-pip install numpy pandas h5py
-pip install optuna joblib
-pip install tensorboard
-pip install psutil
+pip install traci sumolib        # bundled with SUMO; also available on PyPI
+pip install numpy pandas
+pip install tensorboard rich tqdm
 ```
 
 > **Note:** `traci` is also shipped inside `$SUMO_HOME/tools/`.  
@@ -585,74 +583,78 @@ SUMO-Start (training.py)
 
 ## Running the Project
 
-All commands assume you are in the **project root** (the folder that contains `env/` and `oneJunction/`).
+All commands assume you are in the **project root** (the folder that contains `env/` and `oneJunction/`) and that `SUMO_HOME` is set.
 
 ### Training
 
-```bash
-# Single environment, 5 million steps (default)
-python env/training.py
+```powershell
+.\start_training.ps1                      # 4 parallel SUMO instances, 2 M steps
+.\start_training.ps1 -NumEnvs 2 -Timesteps 500000
+.\start_training.ps1 -NumEnvs 1 -Gui      # watch the agent in sumo-gui
 
-# Multiple parallel environments (SubprocVecEnv)
-python env/training.py --num-envs 4
-
-# Full option reference
+# or directly
+python env/training.py --num-envs 4 --timesteps 2000000
 python env/training.py --help
 ```
 
-Key CLI arguments:
-
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--sumocfg` | `oneJunction/oneJunctionLearn.sumocfg` | SUMO config file |
-| `--weather-dir` | `oneJunction/weatherFiles` | Folder with JSON weather files |
-| `--num-envs` | `1` | Number of parallel SUMO instances |
-| `--timesteps` | `5_000_000` | Total training steps |
-| `--seed` | `None` | Global random seed |
-| `--log-dir` | `./logs` | Where to save checkpoints and logs |
-| `--tensorboard` | `./logs/tb_logs` | TensorBoard log directory |
-| `--gui` | off | Launch `sumo-gui` instead of headless `sumo` |
+| `--num-envs` | `4` | Parallel SUMO instances (1 = no subprocesses) |
+| `--timesteps` | `2_000_000` | Total agent decisions (each = 5–9 simulated seconds) |
+| `--seed` | `0` | Random seed |
+| `--log-dir` | `logs/` | Checkpoints, TensorBoard, curriculum state |
+| `--device` | `cpu` | `cpu` is faster than `cuda` for this small MLP |
+| `--resume` | off | Continue from the latest checkpoint in `--log-dir` |
+| `--level` | auto | Pin the curriculum level (0–2) |
+| `--eval-freq` | `25_000` | Evaluate on the fixed scenarios every N steps |
+| `--gui` | off | Launch `sumo-gui` |
 
 ### Resuming from Checkpoint
 
-Training resumes automatically from the latest checkpoint found in  
-`logs/checkpoints/ppo_ckpt_*_steps.zip`.  
-Simply re-run the same command — the script detects existing checkpoints:
-
-```bash
-python env/training.py --num-envs 4 --timesteps 10_000_000
+```powershell
+.\start_training.ps1 -Resume
+# or
+python env/training.py --resume
 ```
+
+Loads `logs/checkpoints/maskable_ppo_<step>_steps.zip` (highest step) and `logs/curriculum_state.json`.
 
 ### Evaluation
 
 ```bash
-python env/evaluate_trained_agent.py \
-    --model logs/best_model/best_model.zip \
-    --weather_file oneJunction/weatherFiles/freibergRain.json \
-    --gui
+python env/evaluate.py                       # best_model vs. fixed-time vs. random
+python env/evaluate.py --model logs/final_model.zip
+python env/evaluate.py --policy agent --gui  # watch the trained agent
 ```
 
-| Flag | Description |
-|------|-------------|
-| `--model` | Path to the trained `.zip` model (required) |
-| `--weather_file` | Specific weather JSON (optional; random if omitted) |
-| `--gui` | Open SUMO GUI for visual inspection |
+All policies run the **same fixed scenarios** (`EVAL_SCENARIOS` in `env/config.py`: identical seed, start hour, duration and weather file), so the numbers are directly comparable:
 
-### Hyperparameter Tuning (Optuna)
-
-```bash
-python env/hyperparam_tuning.py
+```
+policy    wait/veh [s]   queue  arrived  teleports    return
+agent             ...
+fixed             25.6     5.2      737        0.0    -78.42
+random            42.2     8.8      730        0.0   -118.27
 ```
 
-Results are saved to `optuna_study.pkl` and can be resumed automatically.  
-TensorBoard logs go to `logs/optuna/trial_<N>/`.
+* `wait/veh` – seconds a vehicle spends halting on the approach lanes, averaged over all arrived vehicles
+* `queue` – mean number of halting vehicles on the 12 approach lanes
+* `return` – sum of rewards of the episode
 
 ### TensorBoard
 
 ```bash
-tensorboard --logdir logs/tb_logs
-# Then open http://localhost:6006 in your browser
+tensorboard --logdir logs/tb_logs        # or run_tensorboard.bat
 ```
+
+The curves that answer "is it learning?":
+
+| Tag | Meaning |
+|-----|---------|
+| `eval/mean_reward` | Return on the fixed evaluation scenarios (higher = better; compare with the fixed-time baseline from `evaluate.py`) |
+| `traffic/wait_per_vehicle` | Waiting time per vehicle in training episodes (should fall) |
+| `traffic/mean_queue` | Mean queue length in training episodes (should fall) |
+| `curriculum/level` | Current curriculum level |
+| `curriculum/rolling_reward` | Reward per decision, rolling mean over 20 episodes |
 
 ---
 
@@ -661,62 +663,39 @@ tensorboard --logdir logs/tb_logs
 ```
 SumoRLAgent/
 │
-├── env/                            # Core RL + simulation code
-│   ├── environment.py              # Main Gymnasium environment (SumoEnvironment)
-│   ├── training.py                 # Entry point: builds VecEnv, trains MaskablePPO
-│   ├── evaluate_trained_agent.py   # Loads model, runs evaluation loop
-│   ├── evaluation_environment.py   # Lightweight eval-only environment
-│   ├── reward.py                   # RewardCalculator + VehicleStateTracker
-│   ├── observer.py                 # SumoObserver – builds observation dicts
-│   ├── trafficlight.py             # TrafficLightManager – phase FSM
-│   ├── curriculum.py               # CurriculumManager – 4-level progression
-│   ├── weather.py                  # WeatherManager – JSON → SUMO vehicle params
-│   ├── maskwrapper.py              # MaskedSumoEnv – action-masking wrapper
-│   ├── callbacks.py                # CurriculumTensorboardCallback
-│   ├── performance_tracker.py      # HDF5-backed per-level metrics store
-│   ├── debug_logger.py             # CSV observation logger
-│   ├── hyperparam_tuning.py        # Optuna hyperparameter search
-│   ├── utils.py                    # Port helpers, path utilities
-│   └── hyperparams.json / optunaparams.json
+├── env/                      # RL + simulation code
+│   ├── config.py             # ALL constants: paths, phases, lanes, timings, scales, curriculum, eval scenarios
+│   ├── environment.py        # SumoEnvironment (gymnasium.Env) – one step = one decision
+│   ├── trafficlight.py       # TrafficLightController – yellow/red-yellow, min/max green, action mask
+│   ├── observer.py           # Observation vector (31 floats, normalised to [-1, 1])
+│   ├── reward.py             # Bounded reward: -queue/QUEUE_SCALE - teleport penalty
+│   ├── weather.py            # WeatherManager – Open-Meteo JSON → SUMO vehicle parameters
+│   ├── sumo_runner.py        # Start/stop a SUMO instance via TraCI (own port + label per env)
+│   ├── curriculum.py         # CurriculumManager – plateau-based level-up, JSON state
+│   ├── callbacks.py          # CurriculumCallback – drives the curriculum, logs traffic metrics
+│   ├── mask_utils.py         # mask_fn for sb3_contrib.ActionMasker (picklable for SubprocVecEnv)
+│   ├── training.py           # Entry point: MaskablePPO training, checkpoints, resume, evaluation
+│   └── evaluate.py           # Agent vs. fixed-time vs. random on identical scenarios
 │
-├── oneJunction/                    # SUMO scenario files
-│   ├── oneJunction.net.xml         # Road network
-│   ├── oneJunctionLearn.sumocfg    # Config used during training
-│   ├── oneJunctionWeather.sumocfg  # Config used during evaluation
-│   ├── routeFiles/                 # Vehicle demand definitions
-│   │   ├── flows.rou.xml
-│   │   ├── merged.rou.xml
-│   │   └── …
-│   ├── trafficlightFiles/
-│   │   └── staticTrafficlight.tll.xml
-│   └── weatherFiles/               # Real-world weather JSON profiles
-│       ├── freibergRain.json
-│       ├── AlaskaSnow01_20.json
-│       ├── JakartaRain.json
-│       └── …
+├── oneJunction/              # SUMO scenario files
+│   ├── oneJunction.net.xml   # Road network incl. 12-phase program "custom" for J13
+│   ├── oneJunctionLearn.sumocfg
+│   ├── routeFiles/           # Vehicle demand (flows.rou.xml + baseroutes.rou.xml)
+│   └── weatherFiles/         # Real-world hourly weather JSON profiles
 │
-├── logs/                           # Auto-generated during training
+├── logs/                     # Created during training
 │   ├── training.log
-│   ├── episode_log.csv
 │   ├── curriculum_state.json
-│   ├── checkpoints/                # ppo_ckpt_<step>_steps.zip
-│   ├── best_model/                 # best_model.zip (saved by EvalCallback)
-│   ├── env_<N>/                    # Per-env HDF5 performance data
-│   ├── eval_env/
-│   ├── debug_obs/                  # Per-step CSV observation logs
-│   ├── episode_seeds/              # Reproducibility – seed + weather per episode
-│   ├── tb_logs/                    # TensorBoard events
-│   └── optuna/                     # Optuna trial TensorBoard logs
+│   ├── checkpoints/          # maskable_ppo_<step>_steps.zip
+│   ├── best_model/           # best_model.zip (best eval/mean_reward)
+│   ├── final_model.zip
+│   ├── eval_logs/evaluations.npz
+│   └── tb_logs/
 │
-├── scripts/                        # Legacy / utility scripts
-│   ├── trainAgent.py               # Older training environment (reference only)
-│   ├── evaluateAgent.py
-│   ├── StartSumoVanilla.py
-│   ├── weatherSeq.py               # Weather sequence builder
-│   ├── weatherSumo.py
-│   └── plotScripts/                # Post-hoc plotting tools
-│
-├── optuna_study.pkl                # Persisted Optuna study
+├── scripts/                  # Legacy stand-alone scripts (old gym API, not used by env/)
+├── start_training.ps1
+├── run_tensorboard.bat
+├── setup_env.ps1 / activate.ps1
 └── README.md
 ```
 
@@ -724,144 +703,107 @@ SumoRLAgent/
 
 ## Architecture Overview
 
+### Decision cycle
+
+One environment step is one agent decision:
+
+| Agent chooses … | What happens in SUMO |
+|-----------------|----------------------|
+| the current phase | 5 s of green (`DECISION_INTERVAL`) |
+| another phase | 3 s yellow → 1 s red-yellow → 5 s green of the new phase |
+
+The `TrafficLightController` enforces **min green 10 s** and **max green 60 s** through the action mask:
+
+* green < 10 s → only "keep current phase" is allowed
+* green ≥ 60 s → "keep current phase" is forbidden
+
+The mask is used in training **and** evaluation (`MaskablePPO`). If an invalid action arrives anyway, the environment maps it to a valid one instead of terminating the episode. Episodes end only when the simulated time is over (`truncated=True`), so the value function is never told that "the world ends" for no reason.
+
 ### Observation Space
 
-The agent receives a `Dict` observation with 13 keys:
+`Box(-1, 1, shape=(31,))` – all entries are normalised:
 
-| Key | Shape | dtype | Description |
-|-----|-------|-------|-------------|
-| `phase_one_hot` | `(4,)` | float32 | Current green phase (one-hot) |
-| `phase_timer` | `(1,)` | float32 | Seconds since phase start (0–120) |
-| `can_switch_phase` | scalar | int | 1 if min-green elapsed |
-| `queue_length` | `(4,)` | float32 | Halting vehicles per movement group |
-| `avg_wait_time` | `(4,)` | float32 | Mean lane wait time per group (s) |
-| `eta` | `(4,)` | float32 | Min time-to-junction per group (s) |
-| `vehicle_count` | `(4,)` | int32 | Total vehicles per group |
-| `hour_sin` | `(1,)` | float32 | Sine encoding of simulation hour |
-| `hour_cos` | `(1,)` | float32 | Cosine encoding of simulation hour |
-| `precip_type` | `(5,)` | float32 | One-hot: clear/rain/snow/mixed/fog |
-| `precip_intensity` | `(1,)` | float32 | Combined precipitation intensity |
-| `visibility` | `(1,)` | float32 | Visibility in km |
-| `friction_factor` | `(1,)` | float32 | Road friction (0–1) |
+| Slice | Size | Content |
+|-------|------|---------|
+| phase one-hot | 4 | current green phase |
+| green elapsed | 1 | seconds of green / `MAX_GREEN` |
+| queue | 4 | halting vehicles per movement group / group capacity |
+| wait | 4 | sum of current waiting times per group / `WAIT_SCALE_S` |
+| count | 4 | vehicles per group / group capacity |
+| eta | 4 | shortest time-to-stop-line per group / `ETA_SCALE_S` |
+| hour sin/cos | 2 | time of day |
+| weather | 8 | precip type one-hot (clear/rain/snow/mixed/fog), intensity, visibility, friction factor |
 
-The 4 movement groups correspond to:
+Movement groups:
 
 | Group | Lanes | Direction |
 |-------|-------|-----------|
 | 0 | `-E8_0`, `-E8_1`, `-E6_0`, `-E6_1` | N–S straight |
-| 1 | `-E6_2`, `-E8_2` | N–S left-turn |
+| 1 | `-E8_2`, `-E6_2` | N–S left-turn |
 | 2 | `-E7_0`, `-E7_1`, `-E9_0`, `-E9_1` | E–W straight |
-| 3 | `-E9_2`, `-E7_2` | E–W left-turn |
+| 3 | `-E7_2`, `-E9_2` | E–W left-turn |
+
+All values come from TraCI **subscriptions** – SUMO sends them with every `simulationStep()`, no per-lane/per-vehicle round trips.
 
 ### Action Space
 
-`Discrete(4)` — choose one of 4 green phases.  
-The `TrafficLightManager` enforces:
-
-- Minimum green time: **5 s** (action to switch same phase is ignored)
-- Yellow inter-green: **3 s**
-- Red-yellow inter-green: **1 s**
-- Maximum green time: **112 s** (violation terminates episode in training)
-
-`MaskablePPO` + `ActionMasker` mask out unavailable actions (e.g. phase-hold during yellow transition).
+`Discrete(4)` – the green phase for the next interval.
 
 ### Reward Function
 
 ```
-r = γ_wait · (−Σ wait_i)          # absolute wait penalty
-  + γ_wait · Δ(Σ wait_i)          # wait-reduction shaping
-  − λ_queue · Σ queue_i           # queue-length penalty
-  − λ_fair  · std(queue_i)        # fairness penalty (balance across groups)
-  − β_tele  · n_teleports         # teleport penalty
-  − γ_viol  · n_violations        # phase-timeout violation penalty
+r = -(sum of halting vehicles over the simulated seconds of the decision)
+      / DECISION_INTERVAL / QUEUE_SCALE                          # 5 s, 40 vehicles
+    - TELEPORT_PENALTY * teleports                               # 0.5 each
+r = max(r, REWARD_MIN)                                           # -4
 ```
 
-Weights scale with curriculum level:
-
-| Level | γ_wait | λ_queue | λ_fair | β_tele | γ_viol |
-|-------|--------|---------|--------|--------|--------|
-| 0 | 1.0 | 1.0 | 1.0 | 1.0 | 10 |
-| 1 | 2.0 | 1.5 | 1.5 | 1.5 | 20 |
-| 2 | 3.0 | 2.0 | 2.0 | 2.0 | 50 |
-| 3 | 4.0 | 2.5 | 2.5 | 2.5 | 50 |
+Bounded, dense, and directly proportional to the objective (less waiting). Free-flowing traffic gives ≈ 0, a saturated jam ≈ -1 per 5 s. Using the *sum* (not the mean) over the 5 s of a "keep" or the 9 s of a "switch" means that the lost time during yellow/red-yellow is paid for – otherwise switching often would look cheaper simply because it produces fewer decisions per hour.
 
 ### Curriculum Learning
 
-Four progressive levels stored in `logs/curriculum_state.json`:
+Defined in `config.CURRICULUM`; one `CurriculumManager` in the training process pushes the level to all environments.
 
-| Level | Episode range | Duration | Peak hours focused |
-|-------|--------------|----------|--------------------|
-| 0 | 10–20 episodes | 2–4 h | 06:00–12:00, 16:00–19:00 |
-| 1 | 15–30 episodes | 2–4 h | same |
-| 2 | 20–50 episodes | 4–6 h | same |
-| 3 | 30–80 episodes | 6–8 h | same |
+| Level | Episode | Start hours | Weather |
+|-------|---------|-------------|---------|
+| 0 | 1 h | rush hours 7–9, 16–18 | off |
+| 1 | 2 h | 6–11, 15–18 | 50 % of episodes |
+| 2 | 3 h | any | always |
 
-Level-up criteria (all must be met simultaneously after `min_episodes`):
+Level-up when the minimum number of episodes is reached **and** the rolling mean reward (20 episodes) has not improved for `CURRICULUM_PATIENCE = 30` episodes (plateau), or when the maximum number of episodes is reached. No hand-tuned reward thresholds are needed.
 
-- Normalised episode reward > `min_reward`
-- Mean waiting time < `max_wait`
-- Positive reward slope over last 100 episodes
-- Violation rate < `max_violations`
-- Teleport rate < 0.1
+Evaluation does **not** depend on the curriculum: `EVAL_SCENARIOS` are fixed (seed, hour, duration, weather), so `eval/mean_reward` is comparable over the whole run.
 
 ### Weather Model
 
-Each weather JSON file (Open-Meteo format, hourly) is converted to SUMO vehicle parameters via an empirical friction model:
+Each weather JSON (Open-Meteo, hourly) is converted to SUMO vehicle parameters. Speed reductions are calibrated to FHWA field measurements for free-flow speed:
 
-```
-friction = max(0.1, μ_dry · (1 − k · √intensity) · efficiency)
-fog_factor = min(1, visibility / 1000 m)
-speed_factor = min(friction, fog_factor)
-```
+| Condition | Speed factor | Other effects |
+|-----------|--------------|---------------|
+| Rain | −5 % (light) … −12 % (≥ 5 mm/h) | braking ability ∝ μ = 0.8 − 0.1·√mm/h |
+| Snow / mixed | −15 % (light) … −30 % (≥ 1 cm/h) | braking ability ∝ μ = 0.8 − 0.2·√mm/h (floor 50 %) |
+| Fog | none above 300 m visibility, up to −25 % at 50 m | `tau` and `minGap` up to 2× below 300 m |
 
-Applied parameters per vehicle:
-- `accel`, `decel` — scaled by speed_factor
-- `maxSpeed` — `50 km/h × speed_factor`
-- `tau` (reaction time) — increased linearly with reduced visibility
-- `minGap` — increased linearly with reduced visibility
+`accel` is scaled by `0.5 + 0.5 · speed_factor`, `maxSpeed` and `speedFactor` by `speed_factor`. Parameters are applied to **every vehicle when it enters the simulation** and to all vehicles when the hour changes.
 
 ---
 
 ## Configuration Reference
 
-The `config` dict (defined in `env/training.py`) wires the SUMO network to the agent:
+Everything lives in `env/config.py`:
 
-```python
-config = {
-    # SUMO traffic light ID as it appears in the .net.xml
-    "traffic_light_id": "J13",
+| Constant | Meaning |
+|----------|---------|
+| `SUMO_CFG`, `WEATHER_DIR`, `LOG_DIR` | Paths (resolved relative to the project root) |
+| `TL_ID`, `GREEN_PHASES`, `YELLOW_PHASES`, `REDYELLOW_PHASES` | Agent phase → SUMO phase index of program `custom` |
+| `PHASE_LANES` | Approach lanes served by each agent phase |
+| `DECISION_INTERVAL`, `MIN_GREEN`, `MAX_GREEN`, `YELLOW_TIME`, `REDYELLOW_TIME` | Signal timing |
+| `LANE_CAPACITY`, `WAIT_SCALE_S`, `ETA_SCALE_S`, … | Observation normalisation |
+| `QUEUE_SCALE`, `TELEPORT_PENALTY`, `REWARD_MIN` | Reward |
+| `CURRICULUM`, `CURRICULUM_PATIENCE` | Curriculum levels |
+| `EVAL_SCENARIOS` | Fixed evaluation scenarios |
 
-    # Path to the .sumocfg file
-    "sumocfg_path": "oneJunction/oneJunctionLearn.sumocfg",
-
-    # Maps agent phase index → SUMO phase index (green phases)
-    "green_phase_map":    {0: 0, 1: 3, 2: 6, 3: 9},
-
-    # Maps agent phase index → SUMO yellow phase index
-    "yellow_phase_map":   {0: 1, 1: 4, 2: 7, 3: 10},
-
-    # Maps agent phase index → SUMO red-yellow phase index
-    "redyellow_phase_map":{0: 11, 1: 2, 2: 5, 3: 8},
-
-    # Maps group index → list of lane IDs that get green in that phase
-    "green_lane_map": {
-        0: ["-E8_0","-E8_1","-E6_0","-E6_1"],
-        1: ["-E6_2","-E8_2"],
-        2: ["-E7_0","-E7_1","-E9_0","-E9_1"],
-        3: ["-E9_2","-E7_2"],
-    },
-
-    # All incoming lanes that the observer monitors
-    "observation_lanes": [
-        "-E8_0","-E8_1","-E8_2",
-        "-E6_0","-E6_1","-E6_2",
-        "-E7_0","-E7_1","-E7_2",
-        "-E9_0","-E9_1","-E9_2",
-    ],
-}
-```
-
-If you adapt this to a different SUMO network, update every key to match the new network's phase indices and lane IDs.
+To use another SUMO network, adapt the phase maps and lane lists to the new network.
 
 ---
 
@@ -870,84 +812,43 @@ If you adapt this to a different SUMO network, update every key to match the new
 | Path | Contents |
 |------|----------|
 | `logs/training.log` | Timestamped Python logging output |
-| `logs/episode_log.csv` | Per-episode: avg_wait, max_wait, violations, teleports, level |
-| `logs/episode_seeds/episode_<N>.txt` | Seed, weather file and start hour for reproduction |
-| `logs/checkpoints/ppo_ckpt_*_steps.zip` | Model snapshots every 5 000 steps |
-| `logs/best_model/best_model.zip` | Best model from evaluation |
-| `logs/env_<N>/performance_env<N>.h5` | HDF5: per-level rewards, waits, throughput, violations |
-| `logs/debug_obs/observation_run_<N>.csv` | Raw per-step observation values (up to 1 M rows/file) |
+| `logs/curriculum_state.json` | Level, episodes at level, rolling reward (for `--resume`) |
+| `logs/checkpoints/maskable_ppo_*_steps.zip` | Model snapshots every `--ckpt-freq` steps |
+| `logs/best_model/best_model.zip` | Best model on the fixed evaluation scenarios |
+| `logs/final_model.zip` | Model at the end of (or interrupted) training |
+| `logs/eval_logs/evaluations.npz` | Evaluation returns over time |
 | `logs/tb_logs/` | TensorBoard event files |
-| `optuna_study.pkl` | Serialised Optuna study (joblib) |
 
 ---
 
 ## Troubleshooting
 
-### `SUMO_HOME` not set / `FileNotFoundError` on sumo binary
+### `SUMO_HOME ist nicht gesetzt` / `SUMO-Binary nicht gefunden`
 
-```
-KeyError: 'SUMO_HOME'
+```powershell
+$env:SUMO_HOME = 'C:\Program Files (x86)\Eclipse\Sumo'
 ```
 
-The environment variable is not set in the current shell.  
-→ Follow [Setting up SUMO\_HOME](#setting-up-sumo_home).
+→ Follow [Setting up SUMO\_HOME](#setting-up-sumo_home). `start_training.ps1` sets the default path automatically.
 
 ---
 
 ### `traci.exceptions.FatalTraCIError: connection closed`
 
-SUMO exited unexpectedly (e.g. wrong `.sumocfg` path, port conflict).  
-Check:
-1. The path passed via `--sumocfg` is correct and the file exists.
-2. No other SUMO process is using the same TraCI port (default 8813).  
-   Use `--num-envs 1` to reduce concurrent connections while debugging.
+SUMO exited unexpectedly (wrong `.sumocfg` path, broken route file …). The environment logs the error, ends the episode and restarts SUMO on the next reset, so training continues. If it happens on every episode, run with `--num-envs 1` and check the SUMO error output in the console.
 
 ---
 
-### `OSError: [Errno 98] Address already in use` (Linux)
+### Training is slow
 
-A previous SUMO process is still holding the port:
-
-```bash
-fuser -k 8813/tcp   # replace 8813 with the actual port
-```
-
-The training script attempts automatic port reassignment via `find_free_port()`.
+* Use `--device cpu` (default) – the policy network is tiny, the GPU only adds transfer overhead.
+* Increase `--num-envs` (each SUMO instance uses one CPU core).
+* Do not use `--gui` for training.
 
 ---
 
-### `VecCheckNan` raises NaN warning during training
+### Results of an old training run
 
-Common causes:
-- `VecNormalize` with an extremely large or unbounded reward.  
-  → Reduce `clip_reward` or adjust reward weights.
-- Weather observation returns `inf` visibility.  
-  → The observation space allows `np.inf` for `visibility`; set a finite upper bound if needed.
-
----
-
-### CUDA / GPU not used
-
-```
-CUDA available: False
-```
-
-Verify your PyTorch installation matches your CUDA driver:
-
-```bash
-python -c "import torch; print(torch.version.cuda)"
-nvidia-smi
-```
-
-Re-install PyTorch with the correct CUDA version from <https://pytorch.org/get-started/locally/>.  
-CPU training works but is significantly slower.
-
----
-
-### `KeyError: 4` in `CurriculumManager.get_curriculum_config`
-
-The curriculum level exceeded the defined maximum (3).  
-This bug has been fixed — `level` is now capped at `max(level_config.keys())`.  
-Delete `logs/curriculum_state.json` if you started training with the old version and the saved level is > 3.
+The observation and reward have changed. Old checkpoints are **not** compatible; start a fresh run (do not use `--resume` with old `logs/`).
 
 ---

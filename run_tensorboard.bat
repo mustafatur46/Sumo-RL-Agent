@@ -1,6 +1,5 @@
 @echo off
 title TensorBoard - sumo-rl
-call C:\Users\Mustafa Turhal\miniconda3\Scripts\activate.bat sumo-rl
-echo Starte TensorBoard...
-tensorboard --logdir "C:\Users\Mustafa Turhal\OneDrive\Dokumente\SumoRLAgent-main\SumoRLAgent-main\logs\tb_logs" --port 6006
+echo Starte TensorBoard auf http://localhost:6006 ...
+"%USERPROFILE%\miniconda3\envs\sumo-rl\python.exe" -m tensorboard.main --logdir "%~dp0logs\tb_logs" --port 6006
 pause

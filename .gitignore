@@ -14,17 +14,31 @@ __pycache__/
 *$py.class
 *.so
 .env
+# (nicht env/ – das ist der Quellcode!)
 .venv/
-env/
 venv/
 
 # ── Training-Artefakte ────────────────────────────────────────────────────────
-logs/
+# logs/ wird ignoriert, bis auf die kleinen Ergebnisdateien des fertigen Laufs
+logs/*
+logs_*/
 !logs/.gitkeep
+!logs/eval_results.json
+!logs/training_plot.png
+!logs/eval_logs/
+!logs/eval_logs/evaluations.npz
+!logs/best_model/
 
 # ── Modelle & Checkpoints ─────────────────────────────────────────────────────
 *.zip
 *.pkl
+_backup_*/
+# Ausnahmen müssen nach *.zip stehen, sonst gewinnt die Ignore-Regel
+!logs/best_model/best_model.zip
+!logs/final_model.zip
+
+# ── Claude Code (lokale Einstellungen) ────────────────────────────────────────
+.claude/
 
 # ── SUMO temporäre Dateien ────────────────────────────────────────────────────
 *.log

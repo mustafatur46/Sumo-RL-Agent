@@ -1,0 +1,23 @@
+{
+  "fixed": {
+    "wait_per_vehicle": 24.728780529676524,
+    "mean_queue": 5.053318522632602,
+    "arrived": 738.6666666666666,
+    "teleports": 0.0,
+    "ret": -90.98500000000007
+  },
+  "random": {
+    "wait_per_vehicle": 30.026665705664147,
+    "mean_queue": 6.191163617403368,
+    "arrived": 734.0,
+    "teleports": 0.0,
+    "ret": -111.5850000000001
+  },
+  "agent": {
+    "wait_per_vehicle": 9.17943245770241,
+    "mean_queue": 1.9359158953209636,
+    "arrived": 741.6666666666666,
+    "teleports": 0.0,
+    "ret": -34.871666666666634
+  }
+}
