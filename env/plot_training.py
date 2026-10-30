@@ -73,7 +73,7 @@ def main() -> None:
     npz = args.log_dir / "eval_logs" / "evaluations.npz"
 
     fig, axes = plt.subplots(2, 2, figsize=(13, 8))
-    fig.suptitle(f"SumoRLAgent – Lernverlauf ({args.log_dir.name})", fontsize=14)
+    fig.suptitle(f"SumoRLAgent – training curves ({args.log_dir.name})", fontsize=14)
 
     # 1) Evaluation auf festen Szenarien
     ax = axes[0, 0]
@@ -82,15 +82,15 @@ def main() -> None:
         steps = d["timesteps"]
         mean = d["results"].mean(axis=1)
         std = d["results"].std(axis=1)
-        ax.plot(steps, mean, marker="o", ms=3, label="RL-Agent (best so far: %.1f)" % mean.max())
+        ax.plot(steps, mean, marker="o", ms=3, label="RL agent (best so far: %.1f)" % mean.max())
         ax.fill_between(steps, mean - std, mean + std, alpha=0.2)
     for name, color in (("fixed", "tab:red"), ("random", "tab:gray")):
         if name in baselines:
             ax.axhline(baselines[name]["ret"], color=color, ls="--",
-                       label=f"{'Festzeit-Ampel' if name == 'fixed' else 'Zufall'} ({baselines[name]['ret']:.0f})")
-    ax.set_title("Evaluation: Return auf festen Szenarien (höher = besser)")
-    ax.set_xlabel("Trainingsschritte")
-    ax.set_ylabel("Episoden-Return")
+                       label=f"{'fixed-time signal' if name == 'fixed' else 'random'} ({baselines[name]['ret']:.0f})")
+    ax.set_title("Evaluation: return on the fixed scenarios (higher is better)")
+    ax.set_xlabel("training steps")
+    ax.set_ylabel("episode return")
     ax.legend()
     ax.grid(alpha=0.3)
 
@@ -99,13 +99,13 @@ def main() -> None:
     if "wait" in tb:
         s, v = tb["wait"]
         ax.plot(s, v, alpha=0.25, color="tab:blue")
-        ax.plot(s, smooth(v), color="tab:blue", label="Training (geglättet)")
+        ax.plot(s, smooth(v), color="tab:blue", label="training (smoothed)")
     if "fixed" in baselines:
         ax.axhline(baselines["fixed"]["wait_per_vehicle"], color="tab:red", ls="--",
-                   label=f"Festzeit-Ampel ({baselines['fixed']['wait_per_vehicle']:.1f} s)")
-    ax.set_title("Wartezeit je Fahrzeug (niedriger = besser)")
-    ax.set_xlabel("Trainingsschritte")
-    ax.set_ylabel("Sekunden")
+                   label=f"fixed-time signal ({baselines['fixed']['wait_per_vehicle']:.1f} s)")
+    ax.set_title("Waiting time per vehicle (lower is better)")
+    ax.set_xlabel("training steps")
+    ax.set_ylabel("seconds")
     ax.legend()
     ax.grid(alpha=0.3)
 
@@ -114,13 +114,13 @@ def main() -> None:
     if "queue" in tb:
         s, v = tb["queue"]
         ax.plot(s, v, alpha=0.25, color="tab:green")
-        ax.plot(s, smooth(v), color="tab:green", label="Training (geglättet)")
+        ax.plot(s, smooth(v), color="tab:green", label="training (smoothed)")
     if "fixed" in baselines:
         ax.axhline(baselines["fixed"]["mean_queue"], color="tab:red", ls="--",
-                   label=f"Festzeit-Ampel ({baselines['fixed']['mean_queue']:.1f})")
-    ax.set_title("Haltende Fahrzeuge im Mittel (niedriger = besser)")
-    ax.set_xlabel("Trainingsschritte")
-    ax.set_ylabel("Fahrzeuge")
+                   label=f"fixed-time signal ({baselines['fixed']['mean_queue']:.1f})")
+    ax.set_title("Mean number of halting vehicles (lower is better)")
+    ax.set_xlabel("training steps")
+    ax.set_ylabel("vehicles")
     ax.legend()
     ax.grid(alpha=0.3)
 
@@ -128,16 +128,16 @@ def main() -> None:
     ax = axes[1, 1]
     if "ep_rew" in tb:
         s, v = tb["ep_rew"]
-        ax.plot(s, v, color="tab:purple", label="Episoden-Return (Training)")
-        ax.set_ylabel("Return", color="tab:purple")
+        ax.plot(s, v, color="tab:purple", label="episode return (training)")
+        ax.set_ylabel("return", color="tab:purple")
     if "level" in tb:
         ax2 = ax.twinx()
         s, v = tb["level"]
-        ax2.step(s, v, where="post", color="tab:orange", label="Curriculum-Level")
-        ax2.set_ylabel("Level", color="tab:orange")
+        ax2.step(s, v, where="post", color="tab:orange", label="curriculum level")
+        ax2.set_ylabel("level", color="tab:orange")
         ax2.set_yticks(range(len(C.CURRICULUM)))
-    ax.set_title("Trainings-Return und Curriculum-Level")
-    ax.set_xlabel("Trainingsschritte")
+    ax.set_title("Training return and curriculum level")
+    ax.set_xlabel("training steps")
     ax.grid(alpha=0.3)
     lines, labels = ax.get_legend_handles_labels()
     if "level" in tb:

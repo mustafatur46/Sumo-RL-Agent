@@ -78,3 +78,14 @@ EVAL_SCENARIOS = [
     dict(seed=1002, start_hour=17, duration_s=3600, weather_file="AlaskaSnow01_20.json"),
     dict(seed=1003, start_hour=12, duration_s=3600, weather_file=None),
 ]
+
+# Stresstest (evaluate.py --stress): dieselben drei Szenarien unter Bedingungen,
+# die im Training NICHT vorkamen. scale = SUMO --scale (Verkehrsfaktor),
+# extra_route_files = zusätzliche Nachfrage aus einer Richtung.
+STRESS_VARIANTS = {
+    "x1.0 (Training)": dict(),
+    "x1.5":            dict(scale=1.5),
+    "x2.0":            dict(scale=2.0),
+    "asym West +350/h": dict(extra_route_files=[
+        str(PROJECT_ROOT / "oneJunction" / "routeFiles" / "stress_west.rou.xml")]),
+}

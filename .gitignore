@@ -25,6 +25,9 @@ logs_*/
 !logs/.gitkeep
 !logs/eval_results.json
 !logs/training_plot.png
+!logs/results_plot.png
+!logs/stress_results.json
+!logs/ablation_results.json
 !logs/eval_logs/
 !logs/eval_logs/evaluations.npz
 !logs/best_model/

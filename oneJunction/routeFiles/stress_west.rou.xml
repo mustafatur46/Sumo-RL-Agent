@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Stresstest "asymmetrisch": zusätzlich 350 Fahrzeuge/h aus Westen, ganztägig.
+  Wird nur von env/evaluate.py (Option -\-stress) zusätzlich zu flows.rou.xml
+  geladen; die Routen-IDs W_to_* stammen aus flows.rou.xml.
+-->
+<routes>
+  <flow id="stress_west" type="car" begin="0" end="86400" vehsPerHour="350"
+        depart="random" departLane="best" departSpeed="random" departPos="0">
+    <routeDistribution>
+      <route refId="W_to_E" probability="0.8"/>
+      <route refId="W_to_S" probability="0.1"/>
+      <route refId="W_to_N" probability="0.1"/>
+    </routeDistribution>
+  </flow>
+</routes>

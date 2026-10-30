@@ -1,0 +1,37 @@
+{
+  "voll": {
+    "wait_per_vehicle": 9.17943245770241,
+    "mean_queue": 1.9359158953209636,
+    "arrived": 741.6666666666666,
+    "teleports": 0.0,
+    "ret": -34.871666666666634
+  },
+  "ohne Uhrzeit": {
+    "wait_per_vehicle": 9.574378343935946,
+    "mean_queue": 2.0195912357818657,
+    "arrived": 742.0,
+    "teleports": 0.0,
+    "ret": -36.40166666666666
+  },
+  "Uhrzeit +12 h": {
+    "wait_per_vehicle": 9.715521760944533,
+    "mean_queue": 2.0626890089879466,
+    "arrived": 741.0,
+    "teleports": 0.0,
+    "ret": -37.151666666666664
+  },
+  "Wetter = klar": {
+    "wait_per_vehicle": 9.434754210197479,
+    "mean_queue": 1.9960509679456286,
+    "arrived": 740.3333333333334,
+    "teleports": 0.0,
+    "ret": -35.95499999999997
+  },
+  "ohne Uhrzeit + Wetter": {
+    "wait_per_vehicle": 9.624267479190936,
+    "mean_queue": 2.0326025258059266,
+    "arrived": 742.0,
+    "teleports": 0.0,
+    "ret": -36.62666666666663
+  }
+}

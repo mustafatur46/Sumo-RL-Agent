@@ -8,7 +8,8 @@ The agent learns to adapt phase timing to live traffic demand *and* real-world w
 ## Table of Contents
 
 1. [Project Overview](#project-overview)
-2. [Prerequisites](#prerequisites)
+2. [Results](#results)
+3. [Prerequisites](#prerequisites)
 3. [SUMO Installation](#sumo-installation)
    - [Windows](#windows)
    - [Linux (Ubuntu / Debian)](#linux-ubuntu--debian)
@@ -51,6 +52,59 @@ The agent learns to adapt phase timing to live traffic demand *and* real-world w
 
 The agent controls a 4-phase traffic light at a single cross-junction.  
 Every 5 simulated seconds it selects one of 4 green phases; the `TrafficLightController` inserts the yellow / red-yellow inter-green period and enforces minimum (10 s) and maximum (60 s) green via the action mask.
+
+---
+
+## Results
+
+All numbers come from one training run of **2.75 M agent decisions** (8 parallel SUMO instances, CPU only) and are measured on the three fixed scenarios in `EVAL_SCENARIOS` (rain 08:00, snow 17:00, clear 12:00; one hour each). Every policy runs the **same seeds**, so the comparison is like-for-like. Reproduce with `python env/evaluate.py`, `--stress`, `--ablation` and `python env/plot_results.py`.
+
+![Evaluation, stress test and ablation](logs/results_plot.png)
+
+### Agent vs. fixed-time signal (`logs/eval_results.json`)
+
+| Policy | Wait per vehicle | Mean queue | Teleports | Episode return |
+|--------|-----------------:|-----------:|----------:|---------------:|
+| **RL agent** (`best_model.zip`) | **9.2 s** | **1.9** | 0 | **−34.9** |
+| Fixed-time signal (33/10/33/10 s) | 24.7 s | 5.1 | 0 | −91.0 |
+| Random (masked) | 30.0 s | 6.2 | 0 | −111.6 |
+
+Per scenario (agent vs. fixed): rain 10.0 s vs. 23.8 s, snow 10.2 s vs. 24.6 s, clear 7.3 s vs. 25.8 s. The agent cuts the waiting time to roughly **one third** in every weather condition, with no vehicle ever teleported (no gridlock).
+
+### Stress test: traffic the agent never saw in training (`logs/stress_results.json`)
+
+Training uses one fixed daily demand profile. The stress test scales it with SUMO `--scale` or adds an extra one-sided flow (`STRESS_VARIANTS` in `env/config.py`, `oneJunction/routeFiles/stress_west.rou.xml`).
+
+| Demand | Agent wait | Fixed wait | Agent queue | Fixed queue |
+|--------|-----------:|-----------:|------------:|------------:|
+| ×1.0 (as trained) | 9.2 s | 24.7 s | 1.9 | 5.1 |
+| ×1.5 | 11.5 s | 25.9 s | 3.6 | 8.0 |
+| ×2.0 | 13.3 s | 28.7 s | 5.5 | 12.0 |
+| West arm +350 veh/h | 10.9 s | 31.6 s | 3.4 | 9.6 |
+
+The advantage shrinks under double demand but stays at a factor of two or more; the asymmetric load, which a fixed cycle cannot absorb, is where the agent gains most. Hardest single case: snow at double demand, 15.4 s vs. 34.0 s.
+
+### Ablation: which parts of the observation matter (`logs/ablation_results.json`)
+
+Parts of the observation vector are overwritten before the policy sees them (`env/evaluate.py --ablation`).
+
+| Observation | Wait per vehicle | Δ vs. full |
+|-------------|-----------------:|-----------:|
+| Full observation | 9.2 s | – |
+| No time of day | 9.6 s | +0.4 s |
+| Time of day shifted +12 h | 9.7 s | +0.5 s |
+| Weather masked (always "clear") | 9.4 s | +0.3 s |
+| No time, no weather | 9.6 s | +0.4 s |
+
+The lane-level features (queue, waiting time, count, ETA) carry almost the whole decision. Time of day and weather are fine-tuning, and their effect is concentrated in the snow scenario (10.2 s → 11.0–11.7 s when masked). Removing them never breaks the controller, which is the intended behaviour: safety and basic performance must not depend on a weather feed being available.
+
+### Training curves (`logs/training_plot.png`)
+
+![Training curves](logs/training_plot.png)
+
+* **Top left** – return on the fixed evaluation scenarios every 25 k steps (mean ± std over the three scenarios); dashed lines are the fixed-time and random baselines. The agent beats the fixed-time signal after the first evaluation and plateaus at about −37 from ≈ 300 k steps; best checkpoint −34.9 at 1.825 M steps.
+* **Top right / bottom left** – waiting time and queue length in the training episodes, raw and smoothed, against the fixed-time reference.
+* **Bottom right** – training return and curriculum level; level 2 (3-hour episodes, any hour, weather always on) is reached after ≈ 150 k steps.
 
 ---
 
@@ -625,15 +679,19 @@ Loads `logs/checkpoints/maskable_ppo_<step>_steps.zip` (highest step) and `logs/
 python env/evaluate.py                       # best_model vs. fixed-time vs. random
 python env/evaluate.py --model logs/final_model.zip
 python env/evaluate.py --policy agent --gui  # watch the trained agent
+python env/evaluate.py --stress              # demand x1.5 / x2.0 / asymmetric  -> logs/stress_results.json
+python env/evaluate.py --ablation            # mask time of day / weather      -> logs/ablation_results.json
+python env/plot_results.py                   # -> logs/results_plot.png
+python env/plot_training.py                  # -> logs/training_plot.png (from TensorBoard logs)
 ```
 
 All policies run the **same fixed scenarios** (`EVAL_SCENARIOS` in `env/config.py`: identical seed, start hour, duration and weather file), so the numbers are directly comparable:
 
 ```
 policy    wait/veh [s]   queue  arrived  teleports    return
-agent             ...
-fixed             25.6     5.2      737        0.0    -78.42
-random            42.2     8.8      730        0.0   -118.27
+agent              9.2     1.9      742        0.0    -34.87
+fixed             24.7     5.1      739        0.0    -90.99
+random            30.0     6.2      734        0.0   -111.59
 ```
 
 * `wait/veh` – seconds a vehicle spends halting on the approach lanes, averaged over all arrived vehicles
@@ -675,12 +733,14 @@ SumoRLAgent/
 │   ├── callbacks.py          # CurriculumCallback – drives the curriculum, logs traffic metrics
 │   ├── mask_utils.py         # mask_fn for sb3_contrib.ActionMasker (picklable for SubprocVecEnv)
 │   ├── training.py           # Entry point: MaskablePPO training, checkpoints, resume, evaluation
-│   └── evaluate.py           # Agent vs. fixed-time vs. random on identical scenarios
+│   ├── evaluate.py           # Agent vs. fixed-time vs. random; --stress, --ablation
+│   ├── plot_training.py      # Training curves from TensorBoard logs -> logs/training_plot.png
+│   └── plot_results.py       # Evaluation / stress / ablation bars -> logs/results_plot.png
 │
 ├── oneJunction/              # SUMO scenario files
 │   ├── oneJunction.net.xml   # Road network incl. 12-phase program "custom" for J13
 │   ├── oneJunctionLearn.sumocfg
-│   ├── routeFiles/           # Vehicle demand (flows.rou.xml + baseroutes.rou.xml)
+│   ├── routeFiles/           # Vehicle demand (flows.rou.xml + baseroutes.rou.xml, stress_west.rou.xml for --stress)
 │   └── weatherFiles/         # Real-world hourly weather JSON profiles
 │
 ├── logs/                     # Created during training
@@ -690,6 +750,8 @@ SumoRLAgent/
 │   ├── best_model/           # best_model.zip (best eval/mean_reward)
 │   ├── final_model.zip
 │   ├── eval_logs/evaluations.npz
+│   ├── eval_results.json / stress_results.json / ablation_results.json
+│   ├── training_plot.png / results_plot.png
 │   └── tb_logs/
 │
 ├── scripts/                  # Legacy stand-alone scripts (old gym API, not used by env/)
@@ -802,6 +864,7 @@ Everything lives in `env/config.py`:
 | `QUEUE_SCALE`, `TELEPORT_PENALTY`, `REWARD_MIN` | Reward |
 | `CURRICULUM`, `CURRICULUM_PATIENCE` | Curriculum levels |
 | `EVAL_SCENARIOS` | Fixed evaluation scenarios |
+| `STRESS_VARIANTS` | Demand variants for `evaluate.py --stress` (SUMO `--scale`, extra route files) |
 
 To use another SUMO network, adapt the phase maps and lane lists to the new network.
 
@@ -817,6 +880,8 @@ To use another SUMO network, adapt the phase maps and lane lists to the new netw
 | `logs/best_model/best_model.zip` | Best model on the fixed evaluation scenarios |
 | `logs/final_model.zip` | Model at the end of (or interrupted) training |
 | `logs/eval_logs/evaluations.npz` | Evaluation returns over time |
+| `logs/eval_results.json`, `stress_results.json`, `ablation_results.json` | Summary numbers written by `evaluate.py` |
+| `logs/training_plot.png`, `logs/results_plot.png` | Figures shown in [Results](#results) |
 | `logs/tb_logs/` | TensorBoard event files |
 
 ---

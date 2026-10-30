@@ -28,8 +28,15 @@ def sumo_binary(gui: bool) -> str:
     return binary
 
 
-def start_sumo(cfg_path: str, begin: int, end: int, seed: int, gui: bool, label: str):
-    """Startet SUMO und gibt das TraCI-Connection-Objekt zurück."""
+def start_sumo(cfg_path: str, begin: int, end: int, seed: int, gui: bool, label: str,
+               scale: float = 1.0, extra_route_files: list | None = None):
+    """
+    Startet SUMO und gibt das TraCI-Connection-Objekt zurück.
+
+    scale:             Verkehrsfaktor (SUMO --scale), 1.0 = Nachfrage wie in der Routendatei
+    extra_route_files: zusätzliche Routendateien (absolute Pfade), z. B. für
+                       Stresstests mit einseitig erhöhter Nachfrage
+    """
     cmd = [
         sumo_binary(gui),
         "-c", str(cfg_path),
@@ -44,6 +51,15 @@ def start_sumo(cfg_path: str, begin: int, end: int, seed: int, gui: bool, label:
         "--start", "true",
         "--quit-on-end", "true",
     ]
+    if scale != 1.0:
+        cmd += ["--scale", str(float(scale))]
+    if extra_route_files:
+        # Kommandozeile überschreibt die route-files der .sumocfg, daher die
+        # Standarddateien explizit mit angeben (Reihenfolge: Routen-IDs zuerst).
+        cfg_dir = os.path.dirname(os.path.abspath(str(cfg_path)))
+        base = [os.path.join(cfg_dir, "routeFiles", "flows.rou.xml"),
+                os.path.join(cfg_dir, "routeFiles", "baseroutes.rou.xml")]
+        cmd += ["--route-files", ",".join(base + [str(p) for p in extra_route_files])]
     # port=None -> TraCI sucht selbst einen freien Port
     traci.start(cmd, port=None, label=label, doSwitch=False)
     return traci.getConnection(label)

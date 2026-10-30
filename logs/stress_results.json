@@ -1,0 +1,66 @@
+{
+  "x1.0 (Training)": {
+    "agent": {
+      "wait_per_vehicle": 9.17943245770241,
+      "mean_queue": 1.9359158953209636,
+      "arrived": 741.6666666666666,
+      "teleports": 0.0,
+      "ret": -34.871666666666634
+    },
+    "fixed": {
+      "wait_per_vehicle": 24.728780529676524,
+      "mean_queue": 5.053318522632602,
+      "arrived": 738.6666666666666,
+      "teleports": 0.0,
+      "ret": -90.98500000000007
+    }
+  },
+  "x1.5": {
+    "agent": {
+      "wait_per_vehicle": 11.489390992286367,
+      "mean_queue": 3.611183975528817,
+      "arrived": 1115.3333333333333,
+      "teleports": 0.0,
+      "ret": -65.05166666666669
+    },
+    "fixed": {
+      "wait_per_vehicle": 25.946572238510985,
+      "mean_queue": 8.018235675275386,
+      "arrived": 1111.6666666666667,
+      "teleports": 0.0,
+      "ret": -144.36833333333337
+    }
+  },
+  "x2.0": {
+    "agent": {
+      "wait_per_vehicle": 13.273988440524809,
+      "mean_queue": 5.537387284162166,
+      "arrived": 1475.3333333333333,
+      "teleports": 0.0,
+      "ret": -99.70499999999997
+    },
+    "fixed": {
+      "wait_per_vehicle": 28.673994674661486,
+      "mean_queue": 11.951124687586782,
+      "arrived": 1470.6666666666667,
+      "teleports": 0.0,
+      "ret": -215.17999999999995
+    }
+  },
+  "asym West +350/h": {
+    "agent": {
+      "wait_per_vehicle": 10.935888925483873,
+      "mean_queue": 3.3559866590308265,
+      "arrived": 1087.0,
+      "teleports": 0.0,
+      "ret": -60.468333333333284
+    },
+    "fixed": {
+      "wait_per_vehicle": 31.636239762098814,
+      "mean_queue": 9.617143386096455,
+      "arrived": 1071.0,
+      "teleports": 0.0,
+      "ret": -173.15666666666667
+    }
+  }
+}

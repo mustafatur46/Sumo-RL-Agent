@@ -47,8 +47,9 @@ class SumoEnvironment(gym.Env):
                  scenarios: list | None = None):
         """
         scenarios: feste Szenarien (dict mit seed, start_hour, duration_s,
-                   weather_file), die bei jedem reset() der Reihe nach
-                   durchlaufen werden. None -> zufällig aus dem Curriculum-Level.
+                   weather_file, optional scale und extra_route_files), die bei
+                   jedem reset() der Reihe nach durchlaufen werden.
+                   None -> zufällig aus dem Curriculum-Level.
         """
         super().__init__()
         self.env_id = env_id
@@ -120,7 +121,9 @@ class SumoEnvironment(gym.Env):
         last_exc = None
         for attempt in range(3):
             try:
-                conn = start_sumo(C.SUMO_CFG, self.begin, self.end, sc["seed"] + attempt, self.gui, label)
+                conn = start_sumo(C.SUMO_CFG, self.begin, self.end, sc["seed"] + attempt, self.gui, label,
+                                  scale=float(sc.get("scale", 1.0)),
+                                  extra_route_files=sc.get("extra_route_files"))
                 self.conn = conn
                 conn.simulation.subscribe(SIM_VARS)
                 for lane in C.INCOMING_LANES:
