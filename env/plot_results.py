@@ -32,8 +32,8 @@ def _load(path: Path) -> dict | None:
     return json.loads(path.read_text()) if path.is_file() else None
 
 
-def _style(ax, title: str, xlabel: str) -> None:
-    ax.set_title(title, loc="left", fontsize=11, fontweight="bold", color=INK)
+def _style(ax, title: str, xlabel: str, pad: float = 6.0) -> None:
+    ax.set_title(title, loc="left", fontsize=11, fontweight="bold", color=INK, pad=pad)
     ax.set_xlabel(xlabel, color=MUTED)
     ax.tick_params(colors=MUTED, length=0)
     for side in ("top", "right", "left"):
@@ -97,7 +97,7 @@ def main() -> None:
                              .replace("asym West +350/h", "west arm +350 veh/h") for v in variants])
         ax.set_xlim(0, max(f) * 1.2)
         ax.legend(frameon=False, loc="lower right", bbox_to_anchor=(1.0, 1.0), ncol=2, fontsize=9)
-    _style(ax, "Stress test: unseen traffic load", "seconds per vehicle (lower is better)")
+    _style(ax, "Stress test: unseen traffic load", "seconds per vehicle (lower is better)", pad=26)
 
     # 3) Ablation: Teile der Beobachtung ausblenden
     ax = axes[2]
